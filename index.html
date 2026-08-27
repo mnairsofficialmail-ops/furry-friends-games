@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which Breed Is This? | Furry Friends Haven</title>
+<style>
+  :root{
+    --cream:#FBF3E7;
+    --bark:#3E2A1E;
+    --clay:#C7602A;
+    --moss:#5C7A56;
+    --gold:#E0A93B;
+    --card:#FFFFFF;
+    --line:#E8D9C3;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(224,169,59,0.15), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(92,122,86,0.12), transparent 40%),
+      var(--cream);
+    font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+    color:var(--bark);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .stage{
+    width:100%;
+    max-width:480px;
+  }
+  .brand{
+    text-align:center;
+    margin-bottom:14px;
+  }
+  .brand .paw{
+    font-size:28px;
+    display:block;
+    margin-bottom:4px;
+  }
+  .brand h1{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight:700;
+    font-size:26px;
+    margin:0;
+    letter-spacing:0.5px;
+  }
+  .brand p{
+    margin:4px 0 0;
+    font-size:13px;
+    color:#7A6650;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+  }
+  .card{
+    background:var(--card);
+    border-radius:20px;
+    border:1px solid var(--line);
+    box-shadow: 0 10px 30px rgba(62,42,30,0.10);
+    padding:26px 24px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  .track{
+    display:flex;
+    gap:6px;
+    margin-bottom:18px;
+  }
+  .paw-dot{
+    flex:1;
+    height:6px;
+    border-radius:4px;
+    background:var(--line);
+    transition:background 0.3s ease;
+  }
+  .paw-dot.done{ background:var(--gold); }
+  .paw-dot.current{ background:var(--clay); }
+
+  .silhouette{
+    width:100%;
+    height:180px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(180deg, #FDF7EE, #F4E9D6);
+    border-radius:14px;
+    margin-bottom:18px;
+    border:1px solid var(--line);
+  }
+  .silhouette svg{ width:110px; height:110px; }
+
+  .clues{
+    list-style:none;
+    padding:0;
+    margin:0 0 20px;
+  }
+  .clues li{
+    font-size:15px;
+    line-height:1.5;
+    padding:8px 0 8px 26px;
+    position:relative;
+    border-bottom:1px dashed var(--line);
+  }
+  .clues li:last-child{ border-bottom:none; }
+  .clues li::before{
+    content:"🐾";
+    position:absolute;
+    left:0;
+    top:8px;
+    font-size:13px;
+  }
+
+  .options{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .opt{
+    background:var(--cream);
+    border:2px solid var(--line);
+    border-radius:12px;
+    padding:12px 8px;
+    font-size:14.5px;
+    font-weight:600;
+    color:var(--bark);
+    cursor:pointer;
+    transition:all 0.15s ease;
+    text-align:center;
+  }
+  .opt:hover{ border-color:var(--gold); transform:translateY(-1px); }
+  .opt.correct{ background:var(--moss); border-color:var(--moss); color:#fff; }
+  .opt.wrong{ background:#C25450; border-color:#C25450; color:#fff; }
+  .opt:disabled{ cursor:default; transform:none; }
+
+  .feedback{
+    min-height:20px;
+    margin-top:14px;
+    font-size:13.5px;
+    color:#5C7A56;
+    font-style:italic;
+  }
+
+  .footer-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:16px;
+  }
+  .score{
+    font-size:13px;
+    color:#7A6650;
+  }
+  .score b{ color:var(--clay); font-size:15px; }
+  .next-btn{
+    background:var(--bark);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    display:none;
+  }
+  .next-btn.show{ display:inline-block; }
+
+  .result{
+    text-align:center;
+    padding:10px 0 4px;
+  }
+  .result .big{
+    font-size:44px;
+    margin-bottom:6px;
+  }
+  .result h2{
+    font-family: Georgia, serif;
+    margin:0 0 6px;
+  }
+  .result p{
+    color:#7A6650;
+    font-size:14px;
+    margin:0 0 20px;
+  }
+  .restart-btn{
+    background:var(--clay);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:12px 22px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .hidden{ display:none; }
+  .tagline{
+    text-align:center;
+    font-size:12px;
+    color:#9C8871;
+    margin-top:16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="brand">
+    <span class="paw">🐾</span>
+    <h1>Which Breed Is This?</h1>
+    <p>Furry Friends Haven — Weekly Quiz</p>
+  </div>
+
+  <div class="card">
+    <div class="track" id="track"></div>
+
+    <div id="quizView">
+      <div class="silhouette" id="silhouetteBox"></div>
+      <ul class="clues" id="clueList"></ul>
+      <div class="options" id="optionsBox"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="footer-row">
+        <div class="score">Score: <b id="scoreVal">0</b> / <span id="totalVal">0</span></div>
+        <button class="next-btn" id="nextBtn">Next →</button>
+      </div>
+    </div>
+
+    <div id="resultView" class="result hidden">
+      <div class="big" id="resultEmoji">🏆</div>
+      <h2 id="resultTitle">Great job!</h2>
+      <p id="resultSub">You scored 8 out of 10.</p>
+      <button class="restart-btn" id="restartBtn">Play Again</button>
+    </div>
+  </div>
+
+  <p class="tagline">Share your score in the comments 🐶🐱</p>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    animal: "dog",
+    clues: [
+      "Tiny in size, but famously loyal and alert.",
+      "Big pointed ears and a fox-like face.",
+      "One of the smallest dog breeds in the world, from Mexico."
+    ],
+    answer: "Chihuahua",
+    options: ["Chihuahua", "Beagle", "Great Dane", "Corgi"]
+  },
+  {
+    animal: "cat",
+    clues: [
+      "Known for a flat face and long, luxurious coat.",
+      "Calm, quiet, and loves lounging indoors.",
+      "One of the oldest known cat breeds."
+    ],
+    answer: "Persian",
+    options: ["Sphynx", "Persian", "Siamese", "Bengal"]
+  },
+  {
+    animal: "dog",
+    clues: [
+      "Short legs, long body — built to hunt badgers.",
+      "Nicknamed the 'wiener dog'.",
+      "Comes in smooth, wire-haired, and long-haired coats."
+    ],
+    answer: "Dachshund",
+    options: ["Dachshund", "Beagle", "Pug", "Husky"]
+  },
+  {
+    animal: "cat",
+    clues: [
+      "No fur at all — just soft, wrinkly skin.",
+      "Very affectionate and craves warmth.",
+      "Needs regular bathing since it has no coat to absorb oils."
+    ],
+    answer: "Sphynx",
+    options: ["Maine Coon", "Ragdoll", "Sphynx", "Persian"]
+  },
+  {
+    animal: "dog",
+    clues: [
+      "Thick double coat built for freezing climates.",
+      "Often has striking blue or multi-colored eyes.",
+      "Bred to pull sleds in Siberia."
+    ],
+    answer: "Siberian Husky",
+    options: ["Golden Retriever", "Siberian Husky", "Poodle", "Boxer"]
+  },
+  {
+    animal: "cat",
+    clues: [
+      "One of the largest domestic cat breeds.",
+      "Tufted ears and a bushy tail like a raccoon.",
+      "Originated in the cold state of Maine, USA."
+    ],
+    answer: "Maine Coon",
+    options: ["Maine Coon", "Siamese", "Bengal", "Persian"]
+  },
+  {
+    animal: "dog",
+    clues: [
+      "Short, wrinkled face and curled tail.",
+      "Small, sturdy, and famously mischievous.",
+      "An ancient breed originally from China."
+    ],
+    answer: "Pug",
+    options: ["Shih Tzu", "Pug", "Beagle", "Boston Terrier"]
+  },
+  {
+    animal: "cat",
+    clues: [
+      "Sleek, spotted coat that resembles a wild leopard.",
+      "Highly energetic and loves climbing.",
+      "Developed by crossing domestic cats with Asian leopard cats."
+    ],
+    answer: "Bengal",
+    options: ["Bengal", "Ragdoll", "Persian", "Siamese"]
+  },
+  {
+    animal: "dog",
+    clues: [
+      "Extremely tall — one of the biggest dog breeds alive.",
+      "Gentle giant, despite its intimidating size.",
+      "Nicknamed the 'Apollo of Dogs'."
+    ],
+    answer: "Great Dane",
+    options: ["Great Dane", "Rottweiler", "Mastiff", "Dalmatian"]
+  },
+  {
+    animal: "cat",
+    clues: [
+      "Goes limp and relaxed when picked up, like a doll.",
+      "Bright blue eyes and a soft, semi-long coat.",
+      "One of the most affectionate cat breeds."
+    ],
+    answer: "Ragdoll",
+    options: ["Ragdoll", "Sphynx", "Maine Coon", "Bengal"]
+  }
+];
+
+const DOG_SVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="50" cy="62" rx="30" ry="24" fill="#3E2A1E"/>
+  <ellipse cx="32" cy="34" rx="12" ry="16" fill="#3E2A1E" transform="rotate(-20 32 34)"/>
+  <ellipse cx="68" cy="34" rx="12" ry="16" fill="#3E2A1E" transform="rotate(20 68 34)"/>
+  <circle cx="50" cy="46" r="20" fill="#3E2A1E"/>
+  <circle cx="43" cy="44" r="2.5" fill="#FBF3E7"/>
+  <circle cx="57" cy="44" r="2.5" fill="#FBF3E7"/>
+  <ellipse cx="50" cy="54" rx="5" ry="3.5" fill="#FBF3E7"/>
+</svg>`;
+
+const CAT_SVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="50" cy="64" rx="26" ry="22" fill="#3E2A1E"/>
+  <polygon points="30,30 40,10 46,34" fill="#3E2A1E"/>
+  <polygon points="70,30 60,10 54,34" fill="#3E2A1E"/>
+  <circle cx="50" cy="44" r="18" fill="#3E2A1E"/>
+  <circle cx="44" cy="42" r="2.3" fill="#FBF3E7"/>
+  <circle cx="56" cy="42" r="2.3" fill="#FBF3E7"/>
+  <path d="M50 48 l-3 4 h6 z" fill="#FBF3E7"/>
+  <line x1="20" y1="46" x2="34" y2="48" stroke="#FBF3E7" stroke-width="1.2"/>
+  <line x1="20" y1="52" x2="34" y2="52" stroke="#FBF3E7" stroke-width="1.2"/>
+  <line x1="80" y1="46" x2="66" y2="48" stroke="#FBF3E7" stroke-width="1.2"/>
+  <line x1="80" y1="52" x2="66" y2="52" stroke="#FBF3E7" stroke-width="1.2"/>
+</svg>`;
+
+let order = [];
+let idx = 0;
+let score = 0;
+let answered = false;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function init(){
+  order = shuffle(QUESTIONS);
+  idx = 0;
+  score = 0;
+  answered = false;
+  document.getElementById('totalVal').textContent = order.length;
+  document.getElementById('resultView').classList.add('hidden');
+  document.getElementById('quizView').classList.remove('hidden');
+  buildTrack();
+  renderQuestion();
+}
+
+function buildTrack(){
+  const track = document.getElementById('track');
+  track.innerHTML = '';
+  order.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'paw-dot';
+    dot.id = 'dot-' + i;
+    track.appendChild(dot);
+  });
+}
+
+function updateTrack(){
+  order.forEach((_, i) => {
+    const dot = document.getElementById('dot-' + i);
+    dot.className = 'paw-dot' + (i < idx ? ' done' : i === idx ? ' current' : '');
+  });
+}
+
+function renderQuestion(){
+  answered = false;
+  const q = order[idx];
+  updateTrack();
+  document.getElementById('scoreVal').textContent = score;
+  document.getElementById('silhouetteBox').innerHTML = q.animal === 'dog' ? DOG_SVG : CAT_SVG;
+
+  const clueList = document.getElementById('clueList');
+  clueList.innerHTML = '';
+  q.clues.forEach(c => {
+    const li = document.createElement('li');
+    li.textContent = c;
+    clueList.appendChild(li);
+  });
+
+  const optsBox = document.getElementById('optionsBox');
+  optsBox.innerHTML = '';
+  const shuffledOpts = shuffle(q.options);
+  shuffledOpts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(btn, opt, q.answer);
+    optsBox.appendChild(btn);
+  });
+
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('nextBtn').classList.remove('show');
+}
+
+function selectAnswer(btn, chosen, correct){
+  if(answered) return;
+  answered = true;
+  const allOpts = document.querySelectorAll('.opt');
+  allOpts.forEach(b => {
+    b.disabled = true;
+    if(b.textContent === correct) b.classList.add('correct');
+    else if(b === btn) b.classList.add('wrong');
+  });
+  const fb = document.getElementById('feedback');
+  if(chosen === correct){
+    score++;
+    fb.textContent = "Correct! 🎉";
+    document.getElementById('scoreVal').textContent = score;
+  } else {
+    fb.textContent = `Not quite — it's the ${correct}.`;
+  }
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  idx++;
+  if(idx >= order.length){
+    showResult();
+  } else {
+    renderQuestion();
+  }
+});
+
+function showResult(){
+  updateTrack();
+  document.getElementById('quizView').classList.add('hidden');
+  const rv = document.getElementById('resultView');
+  rv.classList.remove('hidden');
+  const total = order.length;
+  const pct = score / total;
+  let emoji, title;
+  if(pct === 1){ emoji = '🏆'; title = 'Perfect Score!'; }
+  else if(pct >= 0.7){ emoji = '🐾'; title = 'Breed Expert!'; }
+  else if(pct >= 0.4){ emoji = '🐶'; title = 'Good Try!'; }
+  else { emoji = '🐣'; title = 'Room to Grow!'; }
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultSub').textContent = `You scored ${score} out of ${total}.`;
+}
+
+document.getElementById('restartBtn').addEventListener('click', init);
+
+init();
+</script>
+
+</body>
+</html>
